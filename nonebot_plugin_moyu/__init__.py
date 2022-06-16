@@ -28,7 +28,7 @@ driver = get_driver()
 
 
 async def get_calendar() -> str:
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(http2=True) as client:
         response = await client.get("https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json")
     if response.is_error:
         raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
