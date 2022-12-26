@@ -1,6 +1,7 @@
 import re
 from pathlib import Path
 
+import requests
 import httpx
 from nonebot import get_bot, get_driver, logger, on_command
 from nonebot.adapters import Message
@@ -36,6 +37,17 @@ async def get_calendar() -> str:
     return content["data"]["moyu_url"]
 
 
+async def png_download() -> bool:
+    url = await get_calendar()
+    try:
+        response = requests.get(url)
+        with open((Path(__file__).parent / "moyu.png"), "wb") as f:
+            f.write(response.content)
+        return True
+    except:
+        return False
+
+    
 @driver.on_startup
 async def subscribe_jobs():
     for group_id, info in subscribe_list.items():
@@ -101,8 +113,9 @@ async def moyu(
         else:
             await matcher.finish("摸鱼日历的参数不正确")
     else:
-        moyu_img = await get_calendar()
-        await matcher.finish(MessageSegment.image(moyu_img))
+        flag_moyu = await png_download()
+        if flag_moyu:
+            await matcher.finish(MessageSegment.image(Path(__file__).parent / "moyu.png"))
 
 
 @moyu_matcher.got("time_arg", prompt="请发送每日定时推送日历的时间，格式为：小时:分钟")
