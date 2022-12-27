@@ -1,11 +1,11 @@
 [project]
 name = "nonebot-plugin-moyu"
-version = "0.3.0"
+version = "0.3.1"
 description = "View your moyu calendar in NoneBot2"
 authors = [
     {name = "Akirami", email = "Akiramiaya@outlook.com"},
 ]
-license-expression = "MIT"
+license = {text = "MIT"}
 dependencies = ["nonebot2>=2.0.0b2", "nonebot-adapter-onebot>=2.0.0b1", "nonebot-plugin-apscheduler>=0.1.2", "httpx[http2]>=0.23.0"]
 requires-python = ">=3.8"
 readme = "README.md"
