@@ -27,13 +27,16 @@ def save_subscribe():
 driver = get_driver()
 
 
-async def get_calendar() -> str:
+async def get_calendar() -> bytes:
     async with httpx.AsyncClient(http2=True) as client:
-        response = await client.get("https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json")
-    if response.is_error:
-        raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
-    content = response.json()
-    return content["data"]["moyu_url"]
+        response = await client.get(
+            "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
+        )
+        if response.is_error:
+            raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
+        content = response.json()
+        image = await client.get(content["data"]["moyu_url"])
+        return image.content
 
 
 @driver.on_startup
