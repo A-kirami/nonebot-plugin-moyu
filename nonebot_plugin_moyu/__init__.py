@@ -2,18 +2,21 @@ import re
 from pathlib import Path
 
 import httpx
-from nonebot import get_bot, get_driver, logger, on_command
+from nonebot import get_bot, get_driver, logger, on_command, require
 from nonebot.adapters import Message
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, MessageSegment
 from nonebot.matcher import Matcher
 from nonebot.params import Arg, CommandArg
 from nonebot.typing import T_State
-from nonebot_plugin_apscheduler import scheduler
 
 try:
     import ujson as json
 except ModuleNotFoundError:
     import json
+
+require("nonebot_plugin_apscheduler")
+
+from nonebot_plugin_apscheduler import scheduler
 
 subscribe = Path(__file__).parent / "subscribe.json"
 
