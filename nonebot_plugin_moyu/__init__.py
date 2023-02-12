@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-
+import aiohttp
 import httpx
 from nonebot import get_bot, get_driver, logger, on_command, require
 from nonebot.adapters import Message
@@ -31,15 +31,13 @@ driver = get_driver()
 
 
 async def get_calendar() -> bytes:
-    async with httpx.AsyncClient(http2=True) as client:
-        response = await client.get(
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
             "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
-        )
-        if response.is_error:
-            raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
-        content = response.json()
-        image = await client.get(content["data"]["moyu_url"])
-        return image.content
+        ) as resp:
+            content = await resp.json()
+        async with session.get(content["data"]["moyu_url"], allow_redirects=True) as resp:
+            return await resp.read()
 
 
 @driver.on_startup
