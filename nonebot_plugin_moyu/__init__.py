@@ -31,7 +31,7 @@ driver = get_driver()
 
 
 async def get_calendar() -> bytes:
-    async with httpx.AsyncClient(http2=True) as client:
+    async with httpx.AsyncClient(http2=True, follow_redirects=True) as client:
         response = await client.get(
             "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
         )
