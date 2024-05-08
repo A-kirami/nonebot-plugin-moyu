@@ -31,12 +31,14 @@ driver = get_driver()
 
 
 async def get_calendar() -> bytes:
-    async with httpx.AsyncClient(http2=True, follow_redirects=False) as client:
-        response = await client.get("https://api.vvhan.com/api/moyu")
-        if response.status_code != 302:
+    async with httpx.AsyncClient(http2=True, follow_redirects=True) as client:
+        response = await client.get(
+            "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
+        )
+        if response.is_error:
             raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
-        image_url = response.headers["location"]
-        image = await client.get(image_url)
+        content = response.json()
+        image = await client.get(content["data"]["moyu_url"])
         return image.content
 
 
