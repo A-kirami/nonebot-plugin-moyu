@@ -38,12 +38,15 @@ async def get_calendar() -> bytes:
         if response.is_error:
             raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
         content = response.json()
+
+        # 获取公众号文章URL
         response = await client.get(
             str(content['data']['articles'][-1]['url'])
         )
         if response.is_error:
             raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
 
+        # 从返回的公众号HTML文本中提取每日摸鱼图的URL
         urls = re.findall(r'data-src="([^"]+)"', response.text[response.text.find('今天你摸鱼了吗？'):])
 
         image = await client.get(urls[0])
