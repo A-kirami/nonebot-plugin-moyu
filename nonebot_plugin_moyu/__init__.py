@@ -31,13 +31,29 @@ driver = get_driver()
 
 
 async def get_calendar() -> bytes:
-    async with httpx.AsyncClient(http2=True, follow_redirects=False) as client:
-        response = await client.get("https://api.vvhan.com/api/moyu")
-        if response.status_code != 302:
+    async with httpx.AsyncClient(http2=True, follow_redirects=True) as client:
+        response = await client.get(
+            "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
+        )
+        if response.is_error:
             raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
-        image_url = response.headers["location"]
-        image = await client.get(image_url)
-        return image.content
+        content = response.json()
+
+        # 获取公众号文章URL
+        response = await client.get(
+            str(content['data']['articles'][-1]['url'])
+        )
+        if response.is_error:
+            raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
+
+        # 从返回的公众号HTML文本中提取每日摸鱼图的URL
+        urls = re.findall(r'data-src="([^"]+)"', response.text[response.text.find('今天你摸鱼了吗？'):])
+
+        if urls:
+            image = await client.get(urls[0])
+            return image.content
+
+        raise ValueError("摸鱼日历获取失败，未找到摸鱼图URL")
 
 
 @driver.on_startup
@@ -51,6 +67,7 @@ async def subscribe_jobs():
             replace_existing=True,
             hour=info["hour"],
             minute=info["minute"],
+            misfire_grace_time=60  # 添加定时任务设置超时时间为60秒
         )
 
 
