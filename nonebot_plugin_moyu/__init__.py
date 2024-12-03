@@ -49,8 +49,11 @@ async def get_calendar() -> bytes:
         # 从返回的公众号HTML文本中提取每日摸鱼图的URL
         urls = re.findall(r'data-src="([^"]+)"', response.text[response.text.find('今天你摸鱼了吗？'):])
 
-        image = await client.get(urls[0])
-        return image.content
+        if urls:
+            image = await client.get(urls[0])
+            return image.content
+
+        raise ValueError("摸鱼日历获取失败，未找到摸鱼图URL")
 
 
 @driver.on_startup
