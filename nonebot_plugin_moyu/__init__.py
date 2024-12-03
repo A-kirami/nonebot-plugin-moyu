@@ -64,7 +64,7 @@ async def subscribe_jobs():
             replace_existing=True,
             hour=info["hour"],
             minute=info["minute"],
-            misfire_grace_time=60
+            misfire_grace_time=60  # 添加定时任务设置超时时间为60秒
         )
 
 
