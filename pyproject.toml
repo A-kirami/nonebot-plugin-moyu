@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-moyu"
-version = "0.3.3"
+version = "0.3.4"
 description = "View your moyu calendar in NoneBot2"
 authors = [
     {name = "Akirami", email = "Akiramiaya@outlook.com"},
