@@ -59,11 +59,11 @@ async def get_calendar() -> bytes:
 
         if response.status_code == 302:
             image_url = response.headers["location"]
-            image = await client.get(image_url)
+            image = (await client.get(image_url)).content
         elif response.status_code == 200:
             image = response.content
 
-        return image.content
+        return image
 
     raise ValueError("摸鱼日历获取失败，未找到摸鱼图URL")
 
