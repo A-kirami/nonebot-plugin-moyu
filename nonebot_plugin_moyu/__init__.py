@@ -54,11 +54,14 @@ async def get_calendar() -> bytes:
         #     image = await client.get(urls[0])
         #     return image.content
         response = await client.get("https://api.vvhan.com/api/moyu")
-        if response.status_code != 302:
+        if response.status_code not in (302, 200):
             raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
 
-        image_url = response.headers["location"]
-        image = await client.get(image_url)
+        if response.status_code == 302:
+            image_url = response.headers["location"]
+            image = await client.get(image_url)
+        elif response.status_code == 200:
+            image = response.content
 
         return image.content
 
