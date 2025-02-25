@@ -32,28 +32,40 @@ driver = get_driver()
 
 async def get_calendar() -> bytes:
     async with httpx.AsyncClient(http2=True, follow_redirects=True) as client:
-        response = await client.get(
-            "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
-        )
-        if response.is_error:
+        # 以下方法是一个通用方法，但是现在已经失效，保留代码，以备不时之需
+        # response = await client.get(
+        #     "https://api.j4u.ink/v1/store/other/proxy/remote/moyu.json"
+        # )
+        # if response.is_error:
+        #     raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
+        # content = response.json()
+
+        # # 获取公众号文章URL
+        # response = await client.get(
+        #     str(content['data']['articles'][-1]['url'])
+        # )
+        # if response.is_error:
+        #     raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
+
+        # # 从返回的公众号HTML文本中提取每日摸鱼图的URL
+        # urls = re.findall(r'data-src="([^"]+)"', response.text[response.text.find('今天你摸鱼了吗？'):])
+
+        # if urls:
+        #     image = await client.get(urls[0])
+        #     return image.content
+        response = await client.get("https://api.vvhan.com/api/moyu")
+        if response.status_code not in (302, 200):
             raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
-        content = response.json()
 
-        # 获取公众号文章URL
-        response = await client.get(
-            str(content['data']['articles'][-1]['url'])
-        )
-        if response.is_error:
-            raise ValueError(f"摸鱼日历获取失败，错误码：{response.status_code}")
+        if response.status_code == 302:
+            image_url = response.headers["location"]
+            image = (await client.get(image_url)).content
+        elif response.status_code == 200:
+            image = response.content
 
-        # 从返回的公众号HTML文本中提取每日摸鱼图的URL
-        urls = re.findall(r'data-src="([^"]+)"', response.text[response.text.find('今天你摸鱼了吗？'):])
+        return image
 
-        if urls:
-            image = await client.get(urls[0])
-            return image.content
-
-        raise ValueError("摸鱼日历获取失败，未找到摸鱼图URL")
+    raise ValueError("摸鱼日历获取失败，未找到摸鱼图URL")
 
 
 @driver.on_startup
@@ -67,7 +79,7 @@ async def subscribe_jobs():
             replace_existing=True,
             hour=info["hour"],
             minute=info["minute"],
-            misfire_grace_time=60  # 添加定时任务设置超时时间为60秒
+            misfire_grace_time=60,  # 添加定时任务设置超时时间为60秒
         )
 
 
@@ -104,7 +116,9 @@ async def moyu(
     if cmdarg := args.extract_plain_text():
         if "状态" in cmdarg:
             push_state = scheduler.get_job(f"moyu_calendar_{event.group_id}")
-            moyu_state = "摸鱼日历状态：\n每日推送: " + ("已开启" if push_state else "已关闭")
+            moyu_state = "摸鱼日历状态：\n每日推送: " + (
+                "已开启" if push_state else "已关闭"
+            )
             if push_state:
                 group_id_info = subscribe_list[str(event.group_id)]
                 moyu_state += (
@@ -137,7 +151,9 @@ async def handle_time(
     match = re.search(r"(\d*)[:：](\d*)", time)
     if match and match[1] and match[2]:
         calendar_subscribe(str(event.group_id), match[1], match[2])
-        await moyu_matcher.finish(f"摸鱼日历的每日推送时间已设置为：{match[1]}:{match[2]}")
+        await moyu_matcher.finish(
+            f"摸鱼日历的每日推送时间已设置为：{match[1]}:{match[2]}"
+        )
     else:
         state["max_times"] += 1
         if state["max_times"] >= 3:
